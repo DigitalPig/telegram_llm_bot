@@ -40,7 +40,10 @@ jobs:
 
     - name: Build image with Podman
       run: |
-        podman build -t ghcr.io/${{ github.repository_owner }}/my-image:${{ github.sha }} .
+        echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        podman build -t ghcr.io/${OWNER_LC}/telegram_llm_bot:${{ github.sha }} .
+      env:
+        OWNER: '${{ github.repository_owner }}'
 
     - name: Log in to GitHub Container Registry
       uses: redhat-actions/podman-login@v1
@@ -51,4 +54,7 @@ jobs:
 
     - name: Push image to GitHub Container Registry
       run: |
-        podman push ghcr.io/${{ github.repository_owner }}/my-image:${{ github.sha }}
+        echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        podman push ghcr.io/${OWNER_LC}/my-image:${{ github.sha }}
+      env:
+        OWNER: '${{ github.repository_owner }}'
