@@ -10,7 +10,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -30,17 +30,20 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Podman
-      uses: actions/setup-podman@v1
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y podman
+        podman --version
 
     - name: Build image with Podman
       run: |
         podman build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
 
     - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2
+      uses: redhat-actions/podman-login@v1
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
