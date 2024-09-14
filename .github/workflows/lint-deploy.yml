@@ -38,12 +38,15 @@ jobs:
         sudo apt-get install -y podman
         podman --version
 
-    - name: Build image with Podman
+    - name: Convert username into lowercase
       run: |
-        echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
-        podman build -t ghcr.io/${OWNER_LC}/telegram_llm_bot:${{ github.sha }} .
+        echo "LC_USERNAME=${OWNER,,}" >> ${GITHUB_ENV}
       env:
         OWNER: '${{ github.repository_owner }}'
+
+    - name: Build image with Podman
+      run: |
+        podman build -t ghcr.io/${{ env.LC_USERNAME }}/telegram_llm_bot:${{ github.sha }} .
 
     - name: Log in to GitHub Container Registry
       uses: redhat-actions/podman-login@v1
@@ -54,7 +57,4 @@ jobs:
 
     - name: Push image to GitHub Container Registry
       run: |
-        echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
-        podman push ghcr.io/${OWNER_LC}/my-image:${{ github.sha }}
-      env:
-        OWNER: '${{ github.repository_owner }}'
+        podman push ghcr.io/${{ env.LC_USERNAME }}/telegram_llm_bot:${{ github.sha }}
