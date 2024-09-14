@@ -1,0 +1,51 @@
+name: Lint, Build, and Push
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install Ruff
+      run: pip install ruff
+
+    - name: Run Ruff (lint and format)
+      run: |
+        ruff check .
+        ruff format .
+
+  build-and-push:
+    needs: lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Podman
+      uses: actions/setup-podman@v1
+
+    - name: Build image with Podman
+      run: |
+        podman build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Push image to GitHub Container Registry
+      run: |
+        podman push ghcr.io/${{ github.repository }}:${{ github.sha }}
